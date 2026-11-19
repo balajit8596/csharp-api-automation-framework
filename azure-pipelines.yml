@@ -1,0 +1,55 @@
+# Azure DevOps pipeline: restore, build, run tests, publish results, fail the build on a failed test.
+trigger:
+  branches:
+    include: [main]
+
+pr:
+  branches:
+    include: [main]
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  buildConfiguration: Release
+
+steps:
+  - task: UseDotNet@2
+    displayName: Install .NET 8 SDK
+    inputs:
+      packageType: sdk
+      version: 8.0.x
+
+  - task: DotNetCoreCLI@2
+    displayName: Restore
+    inputs:
+      command: restore
+      projects: 'tests/**/*.csproj'
+
+  # Fast, offline tests (virtualized REST/SOAP and SQL checks). Safe for every pull request.
+  - task: DotNetCoreCLI@2
+    displayName: API tests (virtualized)
+    inputs:
+      command: test
+      projects: tests/ApiTests/ApiTests.csproj
+      arguments: '--configuration $(buildConfiguration) --filter "Category=virtual"'
+      testRunTitle: API tests (virtualized)
+
+  # BDD scenarios (SpecFlow) that run against the virtual service.
+  - task: DotNetCoreCLI@2
+    displayName: BDD tests (virtualized)
+    inputs:
+      command: test
+      projects: tests/BddTests/BddTests.csproj
+      arguments: '--configuration $(buildConfiguration) --filter "Category=virtual"'
+      testRunTitle: BDD tests (virtualized)
+
+  # Live smoke tests. Reported, but a network problem must not block the pipeline.
+  - task: DotNetCoreCLI@2
+    displayName: Live API smoke tests
+    continueOnError: true
+    inputs:
+      command: test
+      projects: tests/ApiTests/ApiTests.csproj
+      arguments: '--configuration $(buildConfiguration) --filter "Category=live"'
+      testRunTitle: Live API tests
