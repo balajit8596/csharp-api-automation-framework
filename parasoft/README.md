@@ -37,8 +37,3 @@ These are the general SOAtest concepts. Menu names and wizard steps differ betwe
 4. For chaining, extract the first post's `id` from the `userId=1` response and use it in the next call.
 5. For SOAP, **create tests from `calculator.wsdl`**, then add an assertion on `AddResult` and a negative test for the divide-by-zero fault. Point the endpoint at your virtualized or real service.
 6. Put the tests in a suite and run it from the command line or the CI integration so it can run in the pipeline.
-
-## How to describe this honestly in an interview
-- Say you build and run API tests in code (C# with RestSharp and NUnit), and that you understand how the same checks are built in SOAtest.
-- If you have not used SOAtest on a real project, say so. Describe the mapping above and that you prepared importable OpenAPI and WSDL assets.
-- Do not claim SOAtest project experience you do not have.
